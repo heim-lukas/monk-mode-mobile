@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, Platform, Alert, Switch } from 'react-native';
 import { X, Calendar, Clock } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -112,7 +112,7 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
     setIsFocus(true);
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
+  const onDateChange = useCallback((event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
       setSelectedDate(selectedDate);
@@ -120,9 +120,9 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
       const formattedDate = selectedDate.toISOString().split('T')[0];
       setDate(formattedDate);
     }
-  };
+  }, []);
 
-  const onStartTimeChange = (event: any, selectedTime?: Date) => {
+  const onStartTimeChange = useCallback((event: any, selectedTime?: Date) => {
     setShowStartTimePicker(false);
     if (selectedTime) {
       setSelectedStartTime(selectedTime);
@@ -131,9 +131,9 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
       const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
       setStartTime(`${hours}:${minutes}`);
     }
-  };
+  }, []);
 
-  const onEndTimeChange = (event: any, selectedTime?: Date) => {
+  const onEndTimeChange = useCallback((event: any, selectedTime?: Date) => {
     setShowEndTimePicker(false);
     if (selectedTime) {
       setSelectedEndTime(selectedTime);
@@ -142,6 +142,45 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
       const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
       setEndTime(`${hours}:${minutes}`);
     }
+  }, []);
+
+  const renderDatePicker = () => {
+    if (!showDatePicker) return null;
+    
+    return (
+      <DateTimePicker
+        value={selectedDate}
+        mode="date"
+        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+        onChange={onDateChange}
+      />
+    );
+  };
+
+  const renderStartTimePicker = () => {
+    if (!showStartTimePicker) return null;
+    
+    return (
+      <DateTimePicker
+        value={selectedStartTime}
+        mode="time"
+        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+        onChange={onStartTimeChange}
+      />
+    );
+  };
+
+  const renderEndTimePicker = () => {
+    if (!showEndTimePicker) return null;
+    
+    return (
+      <DateTimePicker
+        value={selectedEndTime}
+        mode="time"
+        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+        onChange={onEndTimeChange}
+      />
+    );
   };
 
   return (
@@ -184,14 +223,7 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
                 {date || "Datum auswählen"}
               </Text>
             </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={selectedDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={onDateChange}
-              />
-            )}
+            {renderDatePicker()}
           </View>
           
           <View className="flex-row justify-between mb-4">
@@ -206,14 +238,7 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
                   {startTime || "Zeit auswählen"}
                 </Text>
               </TouchableOpacity>
-              {showStartTimePicker && (
-                <DateTimePicker
-                  value={selectedStartTime}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={onStartTimeChange}
-                />
-              )}
+              {renderStartTimePicker()}
             </View>
             
             <View className="flex-1 ml-2">
@@ -227,17 +252,10 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
                   {endTime || "Zeit auswählen"}
                 </Text>
               </TouchableOpacity>
-              {showEndTimePicker && (
-                <DateTimePicker
-                  value={selectedEndTime}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={onEndTimeChange}
-                />
-              )}
+              {renderEndTimePicker()}
             </View>
           </View>
-
+          
           <View className="mb-4">
             <Text className="mb-1 text-primary"></Text>
             <View className="relative h-12 bg-gray-200 rounded-full overflow-hidden">
@@ -263,7 +281,7 @@ const TimeblockDialog: React.FC<TimeblockDialogProps> = ({ visible, onClose, onS
                   onPress={() => setIsFocus(true)}
                 >
                   <Text className={`font-medium ${isFocus ? 'text-white' : 'text-gray-600'}`}>
-                    Fokuszeit
+                    Fokus
                   </Text>
                 </TouchableOpacity>
               </View>
